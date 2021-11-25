@@ -4,6 +4,7 @@ import contactsReducers from './contacts-reducer';
 
 const store = configureStore({
   reducer: contactsReducers,
+  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(logger),
   devTools: process.env.NODE_ENV === 'development',
 });
 
