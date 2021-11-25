@@ -1,21 +1,37 @@
-import { connect } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useState } from 'react';
-import PropTypes from 'prop-types';
 import { v4 as uuidv4 } from 'uuid';
-import * as contactsActions from '../../redux/contacts-actions';
+import styles from './AddContactForm.module.css';
+import contactsActions from '../../redux/contacts-actions';
+import { getContacts } from '../../redux/contacts-selectors';
 
-// styles import
-import './AddContactForm.css';
-
-function AddContactForm({ contacts, onSubmit }) {
+function AddContactForm() {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
+  const contacts = useSelector(getContacts);
+  const dispatch = useDispatch();
 
-  // unique IDs for inputs
+  const onAddContact = newContact =>
+    dispatch(contactsActions.addContact(newContact));
+
   const nameInputId = uuidv4();
   const numberInputId = uuidv4();
 
-  // function to handle changes on input
+  const checkForDuplicatedContacts = (allContacts, newContact) => {
+    const normalizedContact = newContact.name.toLowerCase();
+
+    if (
+      allContacts.find(
+        contact => contact.name.toLowerCase() === normalizedContact,
+      )
+    ) {
+      alert(`${newContact.name} already exists!`);
+      return;
+    }
+
+    onAddContact(newContact);
+  };
+
   const handleInputChange = e => {
     const { name, value } = e.target;
 
@@ -31,22 +47,11 @@ function AddContactForm({ contacts, onSubmit }) {
     }
   };
 
-  const checkForDuplicatedContacts = (allContacts, newContact) => {
-    const normalizedContact = newContact.name.toLowerCase();
-
-    if (
-      allContacts.find(
-        contact => contact.name.toLowerCase() === normalizedContact,
-      )
-    ) {
-      alert(`${newContact.name} already exists!`);
-      return;
-    }
-
-    onSubmit(newContact);
+  const clearInput = () => {
+    setNumber('');
+    setName('');
   };
 
-  // function to send data back to App
   const handleSubmit = e => {
     e.preventDefault();
 
@@ -57,15 +62,9 @@ function AddContactForm({ contacts, onSubmit }) {
     clearInput();
   };
 
-  // function to clear  after form submission
-  const clearInput = () => {
-    setName('');
-    setNumber('');
-  };
-
   return (
-    <form className="contact-form" onSubmit={handleSubmit}>
-      <label className="contact-form__label" htmlFor={nameInputId}>
+    <form className={styles.contactForm} onSubmit={handleSubmit}>
+      <label className={styles.contactFormLabel} htmlFor={nameInputId}>
         Name
       </label>
       <input
@@ -77,9 +76,9 @@ function AddContactForm({ contacts, onSubmit }) {
         id={nameInputId}
         value={name}
         onChange={handleInputChange}
-        className="contact-form__input"
+        className={styles.contactFormInput}
       />
-      <label className="contact-form__label" htmlFor={numberInputId}>
+      <label className={styles.contactFormLabel} htmlFor={numberInputId}>
         Number
       </label>
       <input
@@ -91,25 +90,13 @@ function AddContactForm({ contacts, onSubmit }) {
         id={numberInputId}
         value={number}
         onChange={handleInputChange}
-        className="contact-form__input"
+        className={styles.contactFormInput}
       />
-      <button type="submit" className="contact-form__btn">
+      <button type="submit" className={styles.contactFormBtn}>
         Add Contact
       </button>
     </form>
   );
 }
 
-const mapStateToProps = state => ({
-  contacts: state.contacts,
-});
-
-const mapDispatchToProps = dispatch => ({
-  onSubmit: newContact => dispatch(contactsActions.addContact(newContact)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(AddContactForm);
-
-AddContactForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-};
+export default AddContactForm;
